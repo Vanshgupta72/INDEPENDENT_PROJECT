@@ -5,30 +5,21 @@ import pandas as pd
 import onnxruntime as ort
 from datetime import datetime
 
-# =========================
-# PATHS
-# =========================
+
 KNOWN_DIR = "KNOWN_IMAGES"
 MODELS_DIR = "MODELS"
 EXCEL_PATH = "attendance.xlsx"
 
-# =========================
-# SAFETY CHECK
-# =========================
-if not os.path.exists(KNOWN_DIR):
-    raise FileNotFoundError("❌ KNOWN_IMAGES folder nahi mila")
-if not os.path.exists(MODELS_DIR):
-    raise FileNotFoundError("❌ MODELS folder nahi mila")
 
-# =========================
-# PARAMETERS (LENIENT)
-# =========================
+if not os.path.exists(KNOWN_DIR):
+    raise FileNotFoundError(" KNOWN_IMAGES folder nahi mila")
+if not os.path.exists(MODELS_DIR):
+    raise FileNotFoundError(" MODELS folder nahi mila")
+
+
 FACE_CONF = 0.30
 DIST_THRESHOLD = 1.25
 
-# =========================
-# LOAD MODELS
-# =========================
 face_net = cv2.dnn.readNetFromCaffe(
     os.path.join(MODELS_DIR, "deploy.prototxt"),
     os.path.join(MODELS_DIR, "res10_300x300_ssd_iter_140000.caffemodel")
@@ -39,17 +30,13 @@ facenet_session = ort.InferenceSession(
     providers=["CPUExecutionProvider"]
 )
 
-print("✅ Backend models loaded")
+print("Backend models loaded")
 
-# =========================
-# INIT EXCEL
-# =========================
+
 if not os.path.exists(EXCEL_PATH):
     pd.DataFrame(columns=["Name", "Timestamp"]).to_excel(EXCEL_PATH, index=False)
 
-# =========================
-# FACE DETECTION
-# =========================
+
 def detect_face(img):
     h, w = img.shape[:2]
     blob = cv2.dnn.blobFromImage(
@@ -74,9 +61,7 @@ def detect_face(img):
 
     return best_box
 
-# =========================
-# FACENET EMBEDDING (368×368)
-# =========================
+
 def get_embedding(face_img):
     face = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
     face = cv2.resize(face, (368, 368))
@@ -90,9 +75,7 @@ def get_embedding(face_img):
 
     return emb / np.linalg.norm(emb)
 
-# =========================
-# ATTENDANCE
-# =========================
+
 def mark_attendance(name):
     if name == "Unknown":
         return
@@ -103,9 +86,7 @@ def mark_attendance(name):
         df.loc[len(df)] = [name, datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
         df.to_excel(EXCEL_PATH, index=False)
 
-# =========================
-# LOAD KNOWN FACES
-# =========================
+
 known_embeddings = {}
 PERSON_NAME = "Vansh"
 
