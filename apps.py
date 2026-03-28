@@ -28,7 +28,7 @@ with left:
             
             st.session_state.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
-    if c2.button("⛔ Stop Camera"):
+    if c2.button(" Stop Camera"):
         st.session_state.run = False
         if st.session_state.cap:
             st.session_state.cap.release()
@@ -36,24 +36,21 @@ with left:
 
 frame_placeholder = left.empty()
 
-
-# ATTENDANCE TABLE
 def load_attendance():
     if os.path.exists("attendance.xlsx"):
         return pd.read_excel("attendance.xlsx")
     return pd.DataFrame(columns=["Name", "Timestamp"])
 
-right.subheader("📋 Attendance Log")
+right.subheader("Attendance Log")
 table_placeholder = right.empty()
 
 
-# VERY LENIENT SETTINGS
-DIST_THRESHOLD = 1.40     # Unknown cam
-MIN_FACE_SIZE = 45        # small faces allowed
-BLUR_KERNEL = (5, 5)      # noise reduction
+DIST_THRESHOLD = 1.40     
+MIN_FACE_SIZE = 45        
+BLUR_KERNEL = (5, 5)      
 
 
-# LIVE CAMERA LOOP
+
 
 if st.session_state.run and st.session_state.cap:
     cap = st.session_state.cap
@@ -66,14 +63,12 @@ if st.session_state.run and st.session_state.cap:
         frame = cv2.resize(frame, (640, 480))
         name = "Unknown"
 
-        # FACE DETECTION
         box = detect_face(frame)
         if box:
             x1, y1, x2, y2 = box
             face = frame[y1:y2, x1:x2]
 
             if face.shape[0] > MIN_FACE_SIZE and face.shape[1] > MIN_FACE_SIZE:
-                # 🔥 noise reduction for low-end camera
                 face = cv2.GaussianBlur(face, BLUR_KERNEL, 0)
 
                 emb = get_embedding(face)
@@ -85,13 +80,11 @@ if st.session_state.run and st.session_state.cap:
                         min_dist = dist
                         name = k
 
-                #  VERY LENIENT UNKNOWN CHECK
                 if min_dist > DIST_THRESHOLD:
                     name = "Unknown"
 
                 mark_attendance(name)
 
-            # Draw box + name
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(
                 frame,
@@ -103,7 +96,6 @@ if st.session_state.run and st.session_state.cap:
                 2
             )
 
-        #  DISPLAY 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_placeholder.image(frame)
 
